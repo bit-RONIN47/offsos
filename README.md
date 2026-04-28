@@ -17,8 +17,8 @@
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Database:** [Prisma ORM](https://www.prisma.io/) with SQLite
-- **Architecture:** Server Actions & React Server Components.
+- **Database:** [Prisma](https://www.prisma.io/) with SQLite
+- **Architecture:** Server Actions & React Server Components
 
 ## 🚀 Getting Started
 
