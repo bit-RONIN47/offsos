@@ -1,0 +1,84 @@
+"use server"
+
+import { revalidatePath } from 'next/cache'
+import prisma from '@/lib/prisma'
+
+export async function submitReport(formData: FormData) {
+  const name = formData.get('name') as string
+  const location = formData.get('location') as string
+  const status = formData.get('status') as string
+  const message = formData.get('message') as string | null
+  const isPrivate = formData.get('isPrivate') === 'on'
+  
+  const priority = (formData.get('priority') as string) || 'MODERATE'
+  const latStr = formData.get('latitude') as string | null
+  const lonStr = formData.get('longitude') as string | null
+  const userId = formData.get('userId') as string | null
+  let category = formData.get('category') as string | null
+
+  if (!name || !location || !status) {
+    throw new Error('Missing required fields')
+  }
+
+  // Auto-tagging based on message if not explicitly set
+  if (message && !category) {
+    const lowerMsg = message.toLowerCase()
+    if (lowerMsg.includes('water') || lowerMsg.includes('flood') || lowerMsg.includes('river')) {
+      category = 'FLOOD'
+    } else if (lowerMsg.includes('fire') || lowerMsg.includes('smoke')) {
+      category = 'FIRE'
+    } else if (lowerMsg.includes('bleed') || lowerMsg.includes('medical') || lowerMsg.includes('hurt') || lowerMsg === 'medical' || lowerMsg.includes('ambulance') || lowerMsg.includes('paramedic')) {
+      category = 'AMBULANCE'
+    } else if (lowerMsg === 'trapped') {
+      category = 'TRAPPED'
+    } else if (lowerMsg === 'food_water') {
+      category = 'RESOURCES'
+    } else if (lowerMsg.includes('violence')) {
+      category = 'SECURITY'
+    } else if (lowerMsg.includes('road') || lowerMsg.includes('block') || lowerMsg.includes('tree')) {
+      category = 'INFRA_ROAD'
+    } else if (lowerMsg.includes('bridge') || lowerMsg.includes('collapse') || lowerMsg.includes('rubble')) {
+      category = 'INFRA_BRIDGE'
+    } else if (lowerMsg.includes('power') || lowerMsg.includes('electricity') || lowerMsg.includes('signal') || lowerMsg.includes('network')) {
+      category = 'INFRA_POWER'
+    }
+  }
+
+  const finalLocation = isPrivate ? `[HIDDEN]${location}` : location
+
+  await prisma.report.create({
+    data: {
+      name,
+      location: finalLocation,
+      status,
+      priority,
+      message: message || null,
+      category,
+      latitude: latStr ? parseFloat(latStr) : null,
+      longitude: lonStr ? parseFloat(lonStr) : null,
+      userId,
+    },
+  })
+
+  // Auto-notify nearby hospitals for MEDICAL or AMBULANCE reports
+  if (category === 'MEDICAL' || category === 'AMBULANCE') {
+    const lat = latStr ? parseFloat(latStr) : null
+    const lon = lonStr ? parseFloat(lonStr) : null
+    if (lat && lon) {
+      // Simulate hospital notification system
+      console.log(`[AUTO-DISPATCH] Pinging nearby hospitals for ${category} emergency at coordinates: ${lat}, ${lon}`)
+      // In production, this would integrate with a real hospital notification API
+      // For now, we log the notification to simulate the system
+    }
+  }
+
+  revalidatePath('/')
+}
+
+export async function resolveReport(id: number) {
+  await prisma.report.update({
+    where: { id },
+    data: { status: 'RESOLVED' }
+  })
+  revalidatePath('/')
+}
