@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  name      String
+  location  String
+  status    String   // "SAFE" or "HELP"
+  priority  String   @default("MODERATE") // "CRITICAL", "URGENT", "MODERATE"
+  message   String?  // Optional freeform
+  category  String?  // Auto-tagged category or specific mode
+  latitude  Float?
+  longitude Float?
+  userId    String?  // Temporary identity token
+  createdAt DateTime @default(now())
+}
