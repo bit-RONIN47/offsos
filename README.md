@@ -1,4 +1,4 @@
-# 🚨 offSOS.(GOOGLE SOLUTION CHALLENGE 2026)
+# 🚨 offSOS(GOOGLE SOLUTION CHALLENGE 2026)
 
 **offSOS** is a mission-critical crisis reporting web application engineered specifically for extremely low-bandwidth and spotty network environments. It provides a reliable, high-contrast, and fast-loading interface for emergency reporting.
 
