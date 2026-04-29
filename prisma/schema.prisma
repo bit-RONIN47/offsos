@@ -24,4 +24,54 @@ model Report {
   longitude Float?
   userId    String?  // Temporary identity token
   createdAt DateTime @default(now())
+  dispatches DispatchLog[]
+}
+
+model Hospital {
+  id          Int      @id @default(autoincrement())
+  name        String
+  phone       String   // Main contact number
+  email       String?
+  address     String
+  latitude    Float
+  longitude   Float
+  isActive    Boolean  @default(true)
+  hasAmbulance Boolean @default(false)
+  ambulanceCount Int   @default(0)
+  specializations String[] // e.g., ["TRAUMA", "CARDIAC", "GENERAL"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dispatches  DispatchLog[]
+  ambulances  Ambulance[]
+}
+
+model Ambulance {
+  id          Int      @id @default(autoincrement())
+  hospitalId  Int
+  hospital    Hospital @relation(fields: [hospitalId], references: [id])
+  vehicleNumber String
+  driverName  String
+  driverPhone String
+  isAvailable Boolean  @default(true)
+  currentLat  Float?
+  currentLon  Float?
+  lastUpdated DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  dispatches  DispatchLog[]
+}
+
+model DispatchLog {
+  id          Int      @id @default(autoincrement())
+  reportId    Int
+  report      Report   @relation(fields: [reportId], references: [id])
+  hospitalId  Int?
+  hospital    Hospital? @relation(fields: [hospitalId], references: [id])
+  ambulanceId Int?
+  ambulance   Ambulance? @relation(fields: [ambulanceId], references: [id])
+  status      String   @default("PENDING") // PENDING, SENT, ACKNOWLEDGED, DISPATCHED, ARRIVED, COMPLETED
+  type        String   // SMS, CALL, PUSH
+  message     String
+  sentAt      DateTime @default(now())
+  acknowledgedAt DateTime?
+  response    String?
 }

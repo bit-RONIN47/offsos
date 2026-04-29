@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
+import { autoDispatchForEmergency } from '@/lib/dispatch'
 
 export async function submitReport(formData: FormData) {
   const name = formData.get('name') as string
@@ -46,7 +47,7 @@ export async function submitReport(formData: FormData) {
 
   const finalLocation = isPrivate ? `[HIDDEN]${location}` : location
 
-  await prisma.report.create({
+  const report = await prisma.report.create({
     data: {
       name,
       location: finalLocation,
@@ -61,14 +62,12 @@ export async function submitReport(formData: FormData) {
   })
 
   // Auto-notify nearby hospitals for MEDICAL or AMBULANCE reports
-  if (category === 'MEDICAL' || category === 'AMBULANCE') {
+  if (category === 'MEDICAL' || category === 'AMBULANCE' || priority === 'CRITICAL') {
     const lat = latStr ? parseFloat(latStr) : null
     const lon = lonStr ? parseFloat(lonStr) : null
     if (lat && lon) {
-      // Simulate hospital notification system
-      console.log(`[AUTO-DISPATCH] Pinging nearby hospitals for ${category} emergency at coordinates: ${lat}, ${lon}`)
-      // In production, this would integrate with a real hospital notification API
-      // For now, we log the notification to simulate the system
+      // Trigger auto-dispatch for emergencies
+      await autoDispatchForEmergency(report.id)
     }
   }
 
