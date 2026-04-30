@@ -24,12 +24,15 @@ ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 
 -- Create policy for public read access (for non-resolved reports)
 CREATE POLICY "Public read access for non-resolved reports" ON reports
-  FOR SELECT USING (status != 'RESOLVED');
+  FOR SELECT TO anon, authenticated
+  USING (status != 'RESOLVED');
 
 -- Create policy for public insert access
 CREATE POLICY "Public insert access" ON reports
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (true);
 
 -- Create policy for public update access (only status updates)
 CREATE POLICY "Public update access for status" ON reports
-  FOR UPDATE USING (true) WITH CHECK (status = 'RESOLVED' OR status = 'HELP' OR status = 'SAFE');
+  FOR UPDATE TO anon, authenticated
+  USING (true) WITH CHECK (status = 'RESOLVED' OR status = 'HELP' OR status = 'SAFE');
